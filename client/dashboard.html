@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - DRM System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+    <style>
+        [v-cloak] { display: none; }
+        .sidebar-item-active { background-color: #f9fafb; color: #000; font-weight: 700; border-right: 4px solid #000; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 font-sans min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-100 hidden md:flex flex-col fixed inset-y-0 left-0 z-50">
+        <div class="p-8 border-b border-gray-100">
+            <a href="index.html" class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                    <i class="fas fa-microchip text-white text-sm"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">DRM System</span>
+            </a>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto mt-4">
+            <a href="#" id="nav-dashboard" class="flex items-center p-3 rounded-xl text-gray-500 hover:text-black hover:bg-gray-50 transition sidebar-item-active" onclick="switchTab('dashboard')">
+                <i class="fas fa-house w-6 text-sm"></i>
+                <span class="ml-3 text-sm font-medium">Dashboard</span>
+            </a>
+            <a href="#" id="nav-resources" class="flex items-center p-3 rounded-xl text-gray-500 hover:text-black hover:bg-gray-50 transition" onclick="switchTab('resources')">
+                <i class="fas fa-building w-6 text-sm"></i>
+                <span class="ml-3 text-sm font-medium">Resources</span>
+            </a>
+            <a href="#" id="nav-bookings" class="flex items-center p-3 rounded-xl text-gray-500 hover:text-black hover:bg-gray-50 transition" onclick="switchTab('bookings')">
+                <i class="fas fa-calendar-days w-6 text-sm"></i>
+                <span class="ml-3 text-sm font-medium">My Bookings</span>
+            </a>
+            <div id="admin-nav" class="hidden pt-6 mt-6 border-t border-gray-100">
+                <p class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 ml-1">Administration</p>
+                <a href="#" id="nav-manage-resources" class="flex items-center p-3 rounded-xl text-gray-500 hover:text-black hover:bg-gray-50 transition" onclick="switchTab('manage-resources')">
+                    <i class="fas fa-sliders w-6 text-sm"></i>
+                    <span class="ml-3 text-sm font-medium">Manage Resources</span>
+                </a>
+                <a href="#" id="nav-all-bookings" class="flex items-center p-3 rounded-xl text-gray-500 hover:text-black hover:bg-gray-50 transition" onclick="switchTab('all-bookings')">
+                    <i class="fas fa-check-double w-6 text-sm"></i>
+                    <span class="ml-3 text-sm font-medium">Approve Bookings</span>
+                </a>
+            </div>
+        </nav>
+        
+        <div class="p-6 border-t border-gray-100">
+            <div class="flex items-center p-3 bg-gray-50 rounded-2xl mb-4">
+                <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-sm" id="user-avatar">
+                    U
+                </div>
+                <div class="ml-3 overflow-hidden">
+                    <p class="text-sm font-bold text-gray-900 truncate leading-tight" id="user-name">User Name</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider" id="user-role">Role</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full flex items-center p-3 rounded-xl text-red-500 hover:bg-red-50 transition">
+                <i class="fas fa-arrow-right-from-bracket w-6 text-sm"></i>
+                <span class="ml-3 text-sm font-medium">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-6 md:p-12 min-h-screen">
+        <!-- Topbar Mobile -->
+        <div class="md:hidden flex justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-gray-100">
+            <h1 class="text-xl font-bold tracking-tight">DRM</h1>
+            <button class="p-2 text-gray-600"><i class="fas fa-bars text-xl"></i></button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section id="tab-dashboard" class="tab-content">
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Welcome back, <span id="welcome-name" class="text-black">User</span></h2>
+                <p class="text-gray-500">Here's what's happening with your resources today.</p>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div id="stats-container" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 hidden">
+                <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Bookings</p>
+                    <h3 class="text-4xl font-bold tracking-tight" id="stat-total-bookings">0</h3>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Pending Requests</p>
+                    <h3 class="text-4xl font-bold tracking-tight text-black" id="stat-pending-requests">0</h3>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Resources</p>
+                    <h3 class="text-4xl font-bold tracking-tight" id="stat-total-resources">0</h3>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Users</p>
+                    <h3 class="text-4xl font-bold tracking-tight" id="stat-total-users">0</h3>
+                </div>
+            </div>
+
+            <!-- Recent Bookings Table -->
+            <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+                <div class="p-8 border-b border-gray-50 flex justify-between items-center">
+                    <h3 class="text-xl font-bold tracking-tight">My Recent Bookings</h3>
+                    <a href="#" onclick="switchTab('bookings')" class="text-xs font-bold uppercase tracking-widest hover:text-gray-500 transition">View All <i class="fas fa-arrow-right ml-1 text-[10px]"></i></a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                                <th class="px-8 py-5">Resource</th>
+                                <th class="px-8 py-5">Date</th>
+                                <th class="px-8 py-5">Time</th>
+                                <th class="px-8 py-5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="my-recent-bookings-list" class="divide-y divide-gray-50">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="tab-resources" class="tab-content hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                <div>
+                    <h2 class="text-4xl font-bold tracking-tight mb-2">Available Resources</h2>
+                    <p class="text-gray-500">Browse and book university facilities.</p>
+                </div>
+                <div class="flex gap-4">
+                    <select id="filter-type" class="px-6 py-3 border border-gray-200 rounded-full outline-none focus:border-black transition text-sm font-medium bg-white appearance-none min-w-[160px]">
+                        <option value="all">All Types</option>
+                        <option value="room">Lecture Rooms</option>
+                        <option value="lab">Laboratories</option>
+                        <option value="equipment">Equipment</option>
+                    </select>
+                </div>
+            </div>
+            <div id="resources-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- JS injected -->
+            </div>
+        </section>
+
+        <!-- My Bookings Section -->
+        <section id="tab-bookings" class="tab-content hidden">
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Booking History</h2>
+                <p class="text-gray-500">A complete record of your resource requests.</p>
+            </div>
+            <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                                <th class="px-8 py-5">ID</th>
+                                <th class="px-8 py-5">Resource</th>
+                                <th class="px-8 py-5">Date</th>
+                                <th class="px-8 py-5">Time</th>
+                                <th class="px-8 py-5">Status</th>
+                                <th class="px-8 py-5">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="my-all-bookings-list" class="divide-y divide-gray-50">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Manage Resources Section (Admin) -->
+        <section id="tab-manage-resources" class="tab-content hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                <div>
+                    <h2 class="text-4xl font-bold tracking-tight mb-2">Manage Resources</h2>
+                    <p class="text-gray-500">Add, edit or remove university resources.</p>
+                </div>
+                <button onclick="openResourceModal()" class="px-8 py-3 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition flex items-center gap-2">
+                    <i class="fas fa-plus text-xs"></i> Add Resource
+                </button>
+            </div>
+            <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                                <th class="px-8 py-5">Name</th>
+                                <th class="px-8 py-5">Type</th>
+                                <th class="px-8 py-5">Location</th>
+                                <th class="px-8 py-5">Capacity</th>
+                                <th class="px-8 py-5">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-resources-list" class="divide-y divide-gray-50">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Approve Bookings Section (Admin) -->
+        <section id="tab-all-bookings" class="tab-content hidden">
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Approve Bookings</h2>
+                <p class="text-gray-500">Review and manage pending resource requests.</p>
+            </div>
+            <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                                <th class="px-8 py-5">User</th>
+                                <th class="px-8 py-5">Resource</th>
+                                <th class="px-8 py-5">Date/Time</th>
+                                <th class="px-8 py-5">Status</th>
+                                <th class="px-8 py-5">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-all-bookings-list" class="divide-y divide-gray-50">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals (Styled) -->
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg p-10 transform transition-all border border-gray-100">
+            <h3 class="text-3xl font-bold tracking-tight mb-8">New Booking Request</h3>
+            <form id="booking-form" class="space-y-6">
+                <input type="hidden" id="booking-resource-id">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Resource</label>
+                    <input type="text" id="booking-resource-name" disabled class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-500 text-sm font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Date</label>
+                    <input type="date" id="booking-date" required class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Start Time</label>
+                        <input type="time" id="booking-start" required class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">End Time</label>
+                        <input type="time" id="booking-end" required class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-10">
+                    <button type="button" onclick="closeBookingModal()" class="px-8 py-3 text-sm font-bold text-gray-500 hover:text-black transition">Cancel</button>
+                    <button type="submit" class="px-8 py-3 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition shadow-lg shadow-black/10">Submit Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resource Modal (Add/Edit) -->
+    <div id="resource-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg p-10 border border-gray-100">
+            <h3 class="text-3xl font-bold tracking-tight mb-8" id="resource-modal-title">Add Resource</h3>
+            <form id="resource-form" class="space-y-6">
+                <input type="hidden" id="resource-id">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Name</label>
+                    <input type="text" id="res-name" required placeholder="e.g. Lab 404" class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Type</label>
+                        <select id="res-type" required class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm bg-white appearance-none">
+                            <option value="room">Lecture Room</option>
+                            <option value="lab">Laboratory</option>
+                            <option value="equipment">Equipment</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Capacity</label>
+                        <input type="number" id="res-capacity" placeholder="0" class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Location</label>
+                    <input type="text" id="res-location" required placeholder="e.g. Science Building, 2nd Floor" class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Description</label>
+                    <textarea id="res-description" rows="3" placeholder="Resource details..." class="w-full px-5 py-3 border border-gray-200 rounded-2xl focus:border-black outline-none transition text-sm"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 mt-10">
+                    <button type="button" onclick="closeResourceModal()" class="px-8 py-3 text-sm font-bold text-gray-500 hover:text-black transition">Cancel</button>
+                    <button type="submit" class="px-8 py-3 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition shadow-lg shadow-black/10">Save Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
